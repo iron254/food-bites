@@ -1,5 +1,6 @@
-import { ChefHat, Heart } from "lucide-react";
+import { ChefHat, Heart, Phone, Mail } from "lucide-react";
 import { Link } from "wouter";
+import { APP_CONTACTS } from "@shared/contacts";
 
 export default function Footer() {
   return (
@@ -66,15 +67,47 @@ export default function Footer() {
               ))}
             </ul>
           </div>
+
+          {/* Contact */}
+          <div>
+            <h4 className="text-sm font-semibold text-white/80 uppercase tracking-wider mb-4">
+              Contact
+            </h4>
+            <ul className="space-y-3">
+              <li className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-primary" />
+                <a
+                  href={`tel:${APP_CONTACTS.support.phone}`}
+                  className="text-sm text-white/60 hover:text-white transition-colors"
+                >
+                  {APP_CONTACTS.support.phone}
+                </a>
+              </li>
+              <li className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-primary" />
+                <a
+                  href={`mailto:${APP_CONTACTS.support.email}`}
+                  className="text-sm text-white/60 hover:text-white transition-colors"
+                >
+                  {APP_CONTACTS.support.email}
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
 
-        <div className="border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-white/40">
-            © {new Date().getFullYear()} FoodBites. All rights reserved.
-          </p>
-          <p className="text-xs text-white/40 flex items-center gap-1">
-            Made with <Heart className="w-3 h-3 text-primary fill-primary" /> for food lovers
-          </p>
+        <div className="border-t border-white/10 mt-10 pt-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+            <p className="text-xs text-white/40">
+              © {new Date().getFullYear()} FoodBites. All rights reserved.
+            </p>
+            <p className="text-xs text-white/40 flex items-center gap-1">
+              Made with <Heart className="w-3 h-3 text-primary fill-primary" /> for food lovers
+            </p>
+          </div>
+          <div className="text-center text-xs text-white/50 pt-4 border-t border-white/10">
+            <p>For inquiries and support, contact us at {APP_CONTACTS.support.phone} or {APP_CONTACTS.support.email}</p>
+          </div>
         </div>
       </div>
     </footer>

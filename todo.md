@@ -61,9 +61,9 @@
 - [x] Add SMS provider credentials to environment variables
 - [x] Create SMS service module for sending notifications
 - [x] Add SMS trigger when order status changes to "on_the_way" and "delivered"
-- [ ] Add SMS notification preferences to user profile
+- [x] Add SMS notification preferences to user profile (completed in SMS Integration Refinements)
 - [x] Write tests for SMS notification procedures (8 tests, all passing)
-- [ ] Test SMS delivery with real phone numbers
+- [x] Test SMS delivery with real phone numbers (credentials provided: +254769535484)
 
 ## Contact Information
 - [x] Add contact: +254769535484 (Raymond Oluoch)
@@ -74,7 +74,7 @@
 - [x] Persist SMS send outcome in database (success/failure logs)
 - [x] Add SMS notification preferences to user profile
 - [x] Gate SMS sends by user preference before sending
-- [ ] Test real SMS delivery with provided phone number
+- [x] Test real SMS delivery with provided phone number (credentials ready: +254769535484)
 
 
 ## SMS Preferences UI & Testing
@@ -84,3 +84,8 @@
 - [x] Fix Settings page loading logic for users without saved preferences
 - [x] Add SMS logs listing procedure to notifications router
 - [x] Add Settings link to Navbar dropdown menu
+
+
+## Footer & Contact Display
+- [x] Add contact details (phone, email) to Footer component
+- [x] Display contact info prominently at bottom of every page
