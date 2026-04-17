@@ -1,5 +1,6 @@
 import axios from "axios";
 import { ENV } from "./_core/env";
+import { logSMS, getUserNotificationPreferences } from "./db";
 
 const AFRICAS_TALKING_API_URL = "https://api.sandbox.africastalking.com/version1";
 
@@ -73,7 +74,7 @@ export async function sendSMS(params: {
 }
 
 /**
- * Send order status notification SMS
+ * Send order status notification SMS (with preference check and logging)
  */
 export async function sendOrderStatusNotification(params: {
   phoneNumber: string;
@@ -81,6 +82,7 @@ export async function sendOrderStatusNotification(params: {
   status: "on_the_way" | "delivered";
   restaurantName: string;
   estimatedTime?: string;
+  userId?: number;
 }): Promise<{ success: boolean; errorMessage?: string }> {
   let message = "";
 
@@ -96,8 +98,33 @@ export async function sendOrderStatusNotification(params: {
     return { success: false, errorMessage: "Invalid status" };
   }
 
-  return sendSMS({
+  // Check user notification preferences if userId is provided
+  if (params.userId) {
+    const prefs = await getUserNotificationPreferences(params.userId);
+    if (prefs) {
+      const shouldSend =
+        (params.status === "on_the_way" && prefs.smsOnOrderOnTheWay) ||
+        (params.status === "delivered" && prefs.smsOnOrderDelivered);
+      if (!shouldSend) {
+        return { success: true, errorMessage: "SMS disabled by user preference" };
+      }
+    }
+  }
+
+  const result = await sendSMS({
     phoneNumber: params.phoneNumber,
     message,
   });
+
+  // Log the SMS attempt
+  await logSMS({
+    orderId: params.orderId,
+    phoneNumber: params.phoneNumber,
+    message,
+    status: result.success ? "sent" : "failed",
+    messageId: result.messageId,
+    errorMessage: result.errorMessage,
+  });
+
+  return result;
 }

@@ -71,7 +71,13 @@
 
 ## SMS Integration Refinements
 - [x] Add lightweight integration test to validate Africa's Talking credentials
-- [ ] Persist SMS send outcome in database (success/failure logs)
-- [ ] Add SMS notification preferences to user profile
-- [ ] Gate SMS sends by user preference before sending
+- [x] Persist SMS send outcome in database (success/failure logs)
+- [x] Add SMS notification preferences to user profile
+- [x] Gate SMS sends by user preference before sending
 - [ ] Test real SMS delivery with provided phone number
+
+
+## SMS Preferences UI & Testing
+- [ ] Add profile/settings page to manage SMS notification preferences
+- [x] Add Vitest test for SMS gating by user preference (5 tests, all passing)
+- [ ] Add SMS logs view in admin panel

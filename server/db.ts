@@ -8,11 +8,14 @@ import {
   orders,
   restaurants,
   users,
+  userNotificationPreferences,
+  smsLogs,
   type InsertMenuItem,
   type InsertOrder,
   type InsertOrderItem,
   type InsertRestaurant,
   type InsertMenuCategory,
+  type InsertSmsLog,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -322,4 +325,60 @@ export async function getOrderByCheckoutRequestId(checkoutRequestId: string) {
     .where(eq(orders.mpesaCheckoutRequestId, checkoutRequestId))
     .limit(1);
   return result[0];
+}
+
+// ─── SMS Logs & Notification Preferences ──────────────────────────────────────
+
+export async function logSMS(data: InsertSmsLog) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.insert(smsLogs).values(data);
+  } catch (error) {
+    console.error("[Database] Failed to log SMS:", error);
+  }
+}
+
+export async function getUserNotificationPreferences(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    const result = await db
+      .select()
+      .from(userNotificationPreferences)
+      .where(eq(userNotificationPreferences.userId, userId))
+      .limit(1);
+    return result[0] || null;
+  } catch (error) {
+    console.error("[Database] Failed to get notification preferences:", error);
+    return null;
+  }
+}
+
+export async function createOrUpdateNotificationPreferences(
+  userId: number,
+  prefs: { smsOnOrderOnTheWay?: boolean; smsOnOrderDelivered?: boolean }
+) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    const existing = await getUserNotificationPreferences(userId);
+    if (existing) {
+      await db
+        .update(userNotificationPreferences)
+        .set({
+          smsOnOrderOnTheWay: prefs.smsOnOrderOnTheWay ?? existing.smsOnOrderOnTheWay,
+          smsOnOrderDelivered: prefs.smsOnOrderDelivered ?? existing.smsOnOrderDelivered,
+        })
+        .where(eq(userNotificationPreferences.userId, userId));
+    } else {
+      await db.insert(userNotificationPreferences).values({
+        userId,
+        smsOnOrderOnTheWay: prefs.smsOnOrderOnTheWay ?? true,
+        smsOnOrderDelivered: prefs.smsOnOrderDelivered ?? true,
+      });
+    }
+  } catch (error) {
+    console.error("[Database] Failed to update notification preferences:", error);
+  }
 }

@@ -30,6 +30,8 @@ import {
   updateMenuItem,
   updateOrderStatus,
   updateRestaurant,
+  getUserNotificationPreferences,
+  createOrUpdateNotificationPreferences,
 } from "./db";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
@@ -300,6 +302,7 @@ const ordersRouter = router({
               status: input.status,
               restaurantName: restaurant?.name || "Your Restaurant",
               estimatedTime: order.order.estimatedDelivery ?? undefined,
+              userId: order.order.userId,
             });
           }
         } catch (error) {
@@ -394,6 +397,22 @@ export const appRouter = router({
   menu: menuRouter,
   orders: ordersRouter,
   seed: seedRouter,
+  notifications: router({
+    getPreferences: protectedProcedure.query(async ({ ctx }) => {
+      return getUserNotificationPreferences(ctx.user.id);
+    }),
+    updatePreferences: protectedProcedure
+      .input(
+        z.object({
+          smsOnOrderOnTheWay: z.boolean().optional(),
+          smsOnOrderDelivered: z.boolean().optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        await createOrUpdateNotificationPreferences(ctx.user.id, input);
+        return { success: true };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
