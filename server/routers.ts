@@ -5,6 +5,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { initiateSTKPush, querySTKPushStatus } from "./mpesa";
+import { sendOrderStatusNotification } from "./sms";
 import { updateOrderPaymentStatus, getOrderByCheckoutRequestId } from "./db";
 import { ENV } from "./_core/env";
 import {
@@ -287,6 +288,25 @@ const ordersRouter = router({
     )
     .mutation(async ({ input }) => {
       await updateOrderStatus(input.id, input.status);
+
+      if (input.status === "on_the_way" || input.status === "delivered") {
+        try {
+          const order = await getOrderWithRestaurant(input.id);
+          if (order && order.order.deliveryPhone) {
+            const restaurant = order.restaurant;
+            await sendOrderStatusNotification({
+              phoneNumber: order.order.deliveryPhone,
+              orderId: input.id,
+              status: input.status,
+              restaurantName: restaurant?.name || "Your Restaurant",
+              estimatedTime: order.order.estimatedDelivery ?? undefined,
+            });
+          }
+        } catch (error) {
+          console.error("Failed to send SMS notification:", error);
+        }
+      }
+
       return { success: true };
     }),
 

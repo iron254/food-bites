@@ -12,4 +12,7 @@ export const ENV = {
   mpesaShortcode: process.env.MPESA_SHORTCODE ?? "",
   mpesaPasskey: process.env.MPESA_PASSKEY ?? "",
   mpesaCallbackUrl: process.env.MPESA_CALLBACK_URL ?? "",
+  africasTalkingApiKey: process.env.AFRICAS_TALKING_API_KEY ?? "",
+  africasTalkingUsername: process.env.AFRICAS_TALKING_USERNAME ?? "",
+  africasTalkingSenderId: process.env.AFRICAS_TALKING_SENDER_ID ?? "",
 };

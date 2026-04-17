@@ -55,3 +55,23 @@
 - [x] Add payment confirmation modal
 - [x] Add payment status tracking to Order Tracking page
 - [x] Write tests for M-Pesa payment procedures
+
+## SMS Notifications (Order Status Updates)
+- [x] Choose SMS provider (Africa's Talking for Kenya)
+- [x] Add SMS provider credentials to environment variables
+- [x] Create SMS service module for sending notifications
+- [x] Add SMS trigger when order status changes to "on_the_way" and "delivered"
+- [ ] Add SMS notification preferences to user profile
+- [x] Write tests for SMS notification procedures (8 tests, all passing)
+- [ ] Test SMS delivery with real phone numbers
+
+## Contact Information
+- [x] Add contact: +254769535484 (Raymond Oluoch)
+- [x] Add email: oluochraymond6@gmail.com
+
+## SMS Integration Refinements
+- [x] Add lightweight integration test to validate Africa's Talking credentials
+- [ ] Persist SMS send outcome in database (success/failure logs)
+- [ ] Add SMS notification preferences to user profile
+- [ ] Gate SMS sends by user preference before sending
+- [ ] Test real SMS delivery with provided phone number
