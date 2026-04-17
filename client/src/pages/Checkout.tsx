@@ -1,6 +1,7 @@
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import { formatKES } from "@shared/currency";
 import { CheckCircle2, ChevronRight, MapPin, Phone, User, FileText, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -24,7 +25,7 @@ export default function Checkout() {
     notes: "",
   });
 
-  const deliveryFee = 2.99;
+  const deliveryFee = 260; // KES
   const total = subtotal + deliveryFee;
 
   const createOrder = trpc.orders.create.useMutation({
@@ -84,13 +85,13 @@ export default function Checkout() {
             Order #{orderId} · Estimated delivery: 30–45 minutes
           </p>
 
-          <div className="bg-white rounded-2xl border border-border p-5 mb-8 text-left">
-            <div className="flex items-center gap-2 mb-3">
-              <MapPin className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">Delivering to</span>
+            <div className="bg-white rounded-2xl border border-border p-5 mb-8 text-left">
+              <div className="flex items-center gap-2 mb-3">
+                <MapPin className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium">Delivering to</span>
+              </div>
+              <p className="text-sm text-muted-foreground">{form.deliveryAddress}</p>
             </div>
-            <p className="text-sm text-muted-foreground">{form.deliveryAddress}</p>
-          </div>
 
           <div className="flex flex-col gap-3">
             <Button
@@ -236,14 +237,14 @@ export default function Checkout() {
 
                 <div className="space-y-2 mb-4">
                   {items.map((item) => (
-                    <div key={item.menuItemId} className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        {item.name} × {item.quantity}
-                      </span>
-                      <span className="font-medium">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </span>
-                    </div>
+                  <div key={item.menuItemId} className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {item.name} × {item.quantity}
+                    </span>
+                    <span className="font-medium">
+                      {formatKES(item.price * item.quantity)}
+                    </span>
+                  </div>
                   ))}
                 </div>
 
@@ -252,11 +253,11 @@ export default function Checkout() {
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-medium">${subtotal.toFixed(2)}</span>
+                    <span className="font-medium">{formatKES(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Delivery fee</span>
-                    <span className="font-medium">${deliveryFee.toFixed(2)}</span>
+                    <span className="font-medium">{formatKES(deliveryFee)}</span>
                   </div>
                 </div>
 
@@ -264,7 +265,7 @@ export default function Checkout() {
 
                 <div className="flex justify-between font-bold text-base mb-6">
                   <span>Total</span>
-                  <span className="text-primary text-lg">${total.toFixed(2)}</span>
+                  <span className="text-primary text-lg">{formatKES(total)}</span>
                 </div>
 
                 <Button
@@ -272,7 +273,7 @@ export default function Checkout() {
                   className="w-full bg-primary hover:bg-primary/90 text-white h-12 text-base"
                   disabled={createOrder.isPending}
                 >
-                  {createOrder.isPending ? "Placing Order..." : `Place Order · $${total.toFixed(2)}`}
+                  {createOrder.isPending ? "Placing Order..." : `Place Order · ${formatKES(total)}`}
                 </Button>
 
                 <p className="text-xs text-muted-foreground text-center mt-3">

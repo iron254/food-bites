@@ -36,3 +36,8 @@
 - [x] Add rating sort/filter to restaurants listing page
 - [x] Add admin UI for managing menu categories
 - [x] Add Vitest test for successful order creation
+
+## Currency Update
+- [x] Change all currency displays from USD ($) to KES (Ksh)
+- [x] Update seed data prices to Kenyan shillings
+- [x] Update frontend components to show KES format

@@ -12,6 +12,7 @@ import {
 import { Link, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { formatKES } from "@shared/currency";
 
 const STEPS = [
   {
@@ -274,7 +275,7 @@ export default function OrderTracking() {
                       {item.name} × {item.quantity}
                     </span>
                     <span className="font-medium">
-                      ${(parseFloat(item.price) * item.quantity).toFixed(2)}
+                      {formatKES(parseFloat(item.price) * item.quantity)}
                     </span>
                   </div>
                 ))}
@@ -286,12 +287,12 @@ export default function OrderTracking() {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
                   <span>
-                    ${(parseFloat(order.totalAmount) - parseFloat(order.deliveryFee ?? "2.99")).toFixed(2)}
+                    {formatKES(parseFloat(order.totalAmount) - parseFloat(order.deliveryFee ?? "260"))}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Delivery fee</span>
-                  <span>${parseFloat(order.deliveryFee ?? "2.99").toFixed(2)}</span>
+                  <span>{formatKES(parseFloat(order.deliveryFee ?? "260"))}</span>
                 </div>
               </div>
 
@@ -299,7 +300,7 @@ export default function OrderTracking() {
 
               <div className="flex justify-between font-bold">
                 <span>Total</span>
-                <span className="text-primary">${parseFloat(order.totalAmount).toFixed(2)}</span>
+                <span className="text-primary">{formatKES(parseFloat(order.totalAmount))}</span>
               </div>
 
               <div className="mt-5 pt-4 border-t border-border">

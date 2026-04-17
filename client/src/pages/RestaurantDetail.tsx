@@ -1,5 +1,6 @@
 import { useCart } from "@/contexts/CartContext";
 import { trpc } from "@/lib/trpc";
+import { formatKES } from "@shared/currency";
 import {
   ArrowLeft,
   Clock,
@@ -59,7 +60,7 @@ function MenuItemCard({
       restaurantName,
     });
     toast.success(`${item.name} added to cart`, {
-      description: `${qty} × $${price.toFixed(2)}`,
+      description: `${qty} × ${formatKES(price)}`,
     });
     setQty(1);
   };
@@ -90,7 +91,7 @@ function MenuItemCard({
             {item.description && (
               <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{item.description}</p>
             )}
-            <p className="text-base font-bold text-primary">${price.toFixed(2)}</p>
+            <p className="text-base font-bold text-primary">{formatKES(price)}</p>
           </div>
         </div>
 
@@ -235,29 +236,29 @@ export default function RestaurantDetail() {
           >
             {restaurant.name}
           </h1>
-          <div className="flex items-center gap-3 text-white/80 text-sm flex-wrap">
-            <div className="flex items-center gap-1">
-              <UtensilsCrossed className="w-4 h-4" />
-              {restaurant.cuisine}
+            <div className="flex items-center gap-3 text-white/80 text-sm flex-wrap">
+              <div className="flex items-center gap-1">
+                <UtensilsCrossed className="w-4 h-4" />
+                {restaurant.cuisine}
+              </div>
+              <div className="flex items-center gap-1">
+                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                {rating.toFixed(1)}
+                {restaurant.reviewCount ? (
+                  <span className="text-white/60">({restaurant.reviewCount} reviews)</span>
+                ) : null}
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                {restaurant.deliveryTime}
+              </div>
+              <div className="flex items-center gap-1">
+                <Truck className="w-4 h-4" />
+                {parseFloat(restaurant.deliveryFee ?? "0") === 0
+                  ? "Free delivery"
+                  : `${formatKES(parseFloat(restaurant.deliveryFee ?? "260"))} delivery`}
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-              {rating.toFixed(1)}
-              {restaurant.reviewCount ? (
-                <span className="text-white/60">({restaurant.reviewCount} reviews)</span>
-              ) : null}
-            </div>
-            <div className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
-              {restaurant.deliveryTime}
-            </div>
-            <div className="flex items-center gap-1">
-              <Truck className="w-4 h-4" />
-              {parseFloat(restaurant.deliveryFee ?? "0") === 0
-                ? "Free delivery"
-                : `$${parseFloat(restaurant.deliveryFee ?? "2.99").toFixed(2)} delivery`}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -349,18 +350,18 @@ export default function RestaurantDetail() {
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-medium">${subtotal.toFixed(2)}</span>
+                    <span className="font-medium">{formatKES(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Delivery</span>
                     <span className="font-medium">
-                      ${parseFloat(restaurant.deliveryFee ?? "2.99").toFixed(2)}
+                      {formatKES(parseFloat(restaurant.deliveryFee ?? "260"))}
                     </span>
                   </div>
                   <div className="border-t border-border pt-2 flex justify-between font-bold">
                     <span>Total</span>
                     <span className="text-primary">
-                      ${(subtotal + parseFloat(restaurant.deliveryFee ?? "2.99")).toFixed(2)}
+                      {formatKES(subtotal + parseFloat(restaurant.deliveryFee ?? "260"))}
                     </span>
                   </div>
                 </div>
@@ -381,7 +382,7 @@ export default function RestaurantDetail() {
           <Link href="/cart">
             <Button className="w-full bg-primary hover:bg-primary/90 text-white h-12 text-base">
               <ShoppingCart className="w-5 h-5 mr-2" />
-              View Cart ({totalItems}) · ${subtotal.toFixed(2)}
+              View Cart ({totalItems}) · {formatKES(subtotal)}
             </Button>
           </Link>
         </div>

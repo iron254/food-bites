@@ -1,6 +1,7 @@
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
+import { formatKES } from "@shared/currency";
 import { Minus, Plus, ShoppingCart, Trash2, ArrowRight, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,7 @@ export default function Cart() {
     );
   }
 
-  const deliveryFee = 2.99;
+  const deliveryFee = 260; // KES
   const total = subtotal + deliveryFee;
 
   return (
@@ -100,7 +101,7 @@ export default function Cart() {
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium text-foreground text-sm">{item.name}</h4>
                   <p className="text-primary font-semibold text-sm mt-0.5">
-                    ${item.price.toFixed(2)}
+                    {formatKES(item.price)}
                   </p>
                 </div>
 
@@ -126,9 +127,9 @@ export default function Cart() {
                 </div>
 
                 {/* Item total */}
-                <div className="text-right min-w-[60px]">
+                <div className="text-right min-w-[80px]">
                   <p className="font-bold text-foreground text-sm">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    {formatKES(item.price * item.quantity)}
                   </p>
                 </div>
               </div>
@@ -151,7 +152,7 @@ export default function Cart() {
                     <span className="text-muted-foreground">
                       {item.name} × {item.quantity}
                     </span>
-                    <span className="font-medium">${(item.price * item.quantity).toFixed(2)}</span>
+                    <span className="font-medium">{formatKES(item.price * item.quantity)}</span>
                   </div>
                 ))}
               </div>
@@ -161,11 +162,11 @@ export default function Cart() {
               <div className="space-y-2 mb-5">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium">${subtotal.toFixed(2)}</span>
+                  <span className="font-medium">{formatKES(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Delivery fee</span>
-                  <span className="font-medium">${deliveryFee.toFixed(2)}</span>
+                  <span className="font-medium">{formatKES(deliveryFee)}</span>
                 </div>
               </div>
 
@@ -173,13 +174,13 @@ export default function Cart() {
 
               <div className="flex justify-between font-bold text-base mb-6">
                 <span>Total</span>
-                <span className="text-primary text-lg">${total.toFixed(2)}</span>
+                <span className="text-primary text-lg">{formatKES(total)}</span>
               </div>
 
               {isAuthenticated ? (
                 <Link href="/checkout">
                   <Button className="w-full bg-primary hover:bg-primary/90 text-white h-12 text-base gap-2">
-                    Proceed to Checkout <ArrowRight className="w-5 h-5" />
+                    Proceed to Checkout <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
               ) : (

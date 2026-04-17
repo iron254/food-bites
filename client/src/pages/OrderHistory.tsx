@@ -5,6 +5,7 @@ import { ChevronRight, Clock, Package, ShoppingBag } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { formatKES } from "@shared/currency";
 
 const STATUS_CONFIG = {
   placed: { label: "Order Placed", color: "bg-blue-100 text-blue-700", emoji: "📋" },
@@ -160,7 +161,7 @@ export default function OrderHistory() {
                       <div className="flex items-center gap-3">
                         <div className="text-right">
                           <p className="font-bold text-foreground text-sm">
-                            ${parseFloat(order.totalAmount).toFixed(2)}
+                            {formatKES(parseFloat(order.totalAmount))}
                           </p>
                         </div>
                         <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />

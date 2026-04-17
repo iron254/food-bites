@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { formatKES } from "@shared/currency";
 
 const STATUS_CONFIG = {
   placed: { label: "Placed", color: "bg-blue-100 text-blue-700" },
@@ -56,8 +57,8 @@ function RestaurantsTab() {
     description: "",
     cuisine: "",
     deliveryTime: "30-45 min",
-    deliveryFee: "2.99",
-    minOrder: "10.00",
+    deliveryFee: "260",
+    minOrder: "1300",
     isOpen: true,
     featured: false,
     address: "",
@@ -112,8 +113,8 @@ function RestaurantsTab() {
       description: r.description ?? "",
       cuisine: r.cuisine,
       deliveryTime: r.deliveryTime ?? "30-45 min",
-      deliveryFee: r.deliveryFee ?? "2.99",
-      minOrder: r.minOrder ?? "10.00",
+      deliveryFee: r.deliveryFee ?? "260",
+      minOrder: r.minOrder ?? "1300",
       isOpen: r.isOpen ?? true,
       featured: r.featured ?? false,
       address: r.address ?? "",
@@ -248,19 +249,19 @@ function RestaurantsTab() {
                 />
               </div>
               <div className="space-y-1">
-                <Label>Delivery Fee ($)</Label>
+                <Label>Delivery Fee (KES)</Label>
                 <Input
                   value={form.deliveryFee}
                   onChange={(e) => setForm({ ...form, deliveryFee: e.target.value })}
-                  placeholder="2.99"
+                  placeholder="260"
                 />
               </div>
               <div className="space-y-1">
-                <Label>Min Order ($)</Label>
+                <Label>Min Order (KES)</Label>
                 <Input
                   value={form.minOrder}
                   onChange={(e) => setForm({ ...form, minOrder: e.target.value })}
-                  placeholder="10.00"
+                  placeholder="1300"
                 />
               </div>
               <div className="col-span-2 space-y-1">
@@ -455,7 +456,7 @@ function MenuItemsTab() {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  ${parseFloat(item.price).toFixed(2)}
+                  {formatKES(parseFloat(item.price))}
                   {item.description ? ` · ${item.description.slice(0, 50)}...` : ""}
                 </p>
               </div>
@@ -509,11 +510,11 @@ function MenuItemsTab() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label>Price ($) *</Label>
+                <Label>Price (KES) *</Label>
                 <Input
                   value={form.price}
                   onChange={(e) => setForm({ ...form, price: e.target.value })}
-                  placeholder="9.99"
+                  placeholder="1300"
                   required
                 />
               </div>
@@ -618,7 +619,7 @@ function OrdersTab() {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {userName ?? "Guest"} · {restaurantName ?? "Restaurant"} ·{" "}
-                    ${parseFloat(order.totalAmount).toFixed(2)}
+                    {formatKES(parseFloat(order.totalAmount))}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
                     {order.deliveryAddress}

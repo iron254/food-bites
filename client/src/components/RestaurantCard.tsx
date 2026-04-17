@@ -1,6 +1,7 @@
 import { Clock, Star, Truck, UtensilsCrossed } from "lucide-react";
 import { Link } from "wouter";
 import { Badge } from "./ui/badge";
+import { formatKES } from "@shared/currency";
 
 interface Restaurant {
   id: number;
@@ -140,7 +141,7 @@ export default function RestaurantCard({ restaurant }: { restaurant: Restaurant 
               <span>
                 {parseFloat(restaurant.deliveryFee ?? "0") === 0
                   ? "Free delivery"
-                  : `$${parseFloat(restaurant.deliveryFee ?? "2.99").toFixed(2)} delivery`}
+                  : `${formatKES(parseFloat(restaurant.deliveryFee ?? "260"))} delivery`}
               </span>
             </div>
           </div>
