@@ -1,11 +1,23 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq, ilike, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
-import { ENV } from './_core/env';
+import {
+  InsertUser,
+  menuCategories,
+  menuItems,
+  orderItems,
+  orders,
+  restaurants,
+  users,
+  type InsertMenuItem,
+  type InsertOrder,
+  type InsertOrderItem,
+  type InsertRestaurant,
+  type InsertMenuCategory,
+} from "../drizzle/schema";
+import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -18,75 +30,267 @@ export async function getDb() {
   return _db;
 }
 
+// ─── Users ────────────────────────────────────────────────────────────────────
+
 export async function upsertUser(user: InsertUser): Promise<void> {
-  if (!user.openId) {
-    throw new Error("User openId is required for upsert");
-  }
-
+  if (!user.openId) throw new Error("User openId is required for upsert");
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot upsert user: database not available");
-    return;
+  if (!db) return;
+
+  const values: InsertUser = { openId: user.openId };
+  const updateSet: Record<string, unknown> = {};
+
+  const textFields = ["name", "email", "loginMethod"] as const;
+  for (const field of textFields) {
+    const value = user[field];
+    if (value === undefined) continue;
+    const normalized = value ?? null;
+    values[field] = normalized;
+    updateSet[field] = normalized;
   }
 
-  try {
-    const values: InsertUser = {
-      openId: user.openId,
-    };
-    const updateSet: Record<string, unknown> = {};
-
-    const textFields = ["name", "email", "loginMethod"] as const;
-    type TextField = (typeof textFields)[number];
-
-    const assignNullable = (field: TextField) => {
-      const value = user[field];
-      if (value === undefined) return;
-      const normalized = value ?? null;
-      values[field] = normalized;
-      updateSet[field] = normalized;
-    };
-
-    textFields.forEach(assignNullable);
-
-    if (user.lastSignedIn !== undefined) {
-      values.lastSignedIn = user.lastSignedIn;
-      updateSet.lastSignedIn = user.lastSignedIn;
-    }
-    if (user.role !== undefined) {
-      values.role = user.role;
-      updateSet.role = user.role;
-    } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
-    }
-
-    if (!values.lastSignedIn) {
-      values.lastSignedIn = new Date();
-    }
-
-    if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
-    }
-
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
-    });
-  } catch (error) {
-    console.error("[Database] Failed to upsert user:", error);
-    throw error;
+  if (user.lastSignedIn !== undefined) {
+    values.lastSignedIn = user.lastSignedIn;
+    updateSet.lastSignedIn = user.lastSignedIn;
   }
+  if (user.role !== undefined) {
+    values.role = user.role;
+    updateSet.role = user.role;
+  } else if (user.openId === ENV.ownerOpenId) {
+    values.role = "admin";
+    updateSet.role = "admin";
+  }
+
+  if (!values.lastSignedIn) values.lastSignedIn = new Date();
+  if (Object.keys(updateSet).length === 0) updateSet.lastSignedIn = new Date();
+
+  await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
 }
 
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot get user: database not available");
-    return undefined;
-  }
-
+  if (!db) return undefined;
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
-  return result.length > 0 ? result[0] : undefined;
+  return result[0];
 }
 
-// TODO: add feature queries here as your schema grows.
+// ─── Restaurants ──────────────────────────────────────────────────────────────
+
+export async function getRestaurants(opts?: {
+  search?: string;
+  cuisine?: string;
+  featured?: boolean;
+  limit?: number;
+  offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [];
+  if (opts?.search) {
+    conditions.push(
+      or(
+        like(restaurants.name, `%${opts.search}%`),
+        like(restaurants.cuisine, `%${opts.search}%`)
+      )
+    );
+  }
+  if (opts?.cuisine && opts.cuisine !== "All") {
+    conditions.push(like(restaurants.cuisine, `%${opts.cuisine}%`));
+  }
+  if (opts?.featured !== undefined) {
+    conditions.push(eq(restaurants.featured, opts.featured));
+  }
+
+  const query = db
+    .select()
+    .from(restaurants)
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(restaurants.rating))
+    .limit(opts?.limit ?? 50)
+    .offset(opts?.offset ?? 0);
+
+  return query;
+}
+
+export async function getRestaurantById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(restaurants).where(eq(restaurants.id, id)).limit(1);
+  return result[0];
+}
+
+export async function createRestaurant(data: InsertRestaurant) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  const result = await db.insert(restaurants).values(data);
+  return result;
+}
+
+export async function updateRestaurant(id: number, data: Partial<InsertRestaurant>) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.update(restaurants).set(data).where(eq(restaurants.id, id));
+}
+
+export async function deleteRestaurant(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.delete(restaurants).where(eq(restaurants.id, id));
+}
+
+// ─── Menu Categories ──────────────────────────────────────────────────────────
+
+export async function getMenuCategories(restaurantId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(menuCategories)
+    .where(eq(menuCategories.restaurantId, restaurantId))
+    .orderBy(menuCategories.sortOrder);
+}
+
+export async function createMenuCategory(data: InsertMenuCategory) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  const result = await db.insert(menuCategories).values(data);
+  return result;
+}
+
+export async function deleteMenuCategory(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.delete(menuCategories).where(eq(menuCategories.id, id));
+}
+
+// ─── Menu Items ───────────────────────────────────────────────────────────────
+
+export async function getMenuItems(restaurantId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(menuItems)
+    .where(and(eq(menuItems.restaurantId, restaurantId), eq(menuItems.isAvailable, true)))
+    .orderBy(menuItems.categoryId);
+}
+
+export async function getAllMenuItems(restaurantId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(menuItems)
+    .where(eq(menuItems.restaurantId, restaurantId))
+    .orderBy(menuItems.categoryId);
+}
+
+export async function getMenuItemById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(menuItems).where(eq(menuItems.id, id)).limit(1);
+  return result[0];
+}
+
+export async function createMenuItem(data: InsertMenuItem) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  const result = await db.insert(menuItems).values(data);
+  return result;
+}
+
+export async function updateMenuItem(id: number, data: Partial<InsertMenuItem>) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.update(menuItems).set(data).where(eq(menuItems.id, id));
+}
+
+export async function deleteMenuItem(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.delete(menuItems).where(eq(menuItems.id, id));
+}
+
+// ─── Orders ───────────────────────────────────────────────────────────────────
+
+export async function createOrder(
+  orderData: InsertOrder,
+  items: InsertOrderItem[]
+): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+
+  const result = await db.insert(orders).values(orderData);
+  const orderId = (result as any)[0]?.insertId as number;
+
+  if (items.length > 0) {
+    await db.insert(orderItems).values(items.map((item) => ({ ...item, orderId })));
+  }
+
+  return orderId;
+}
+
+export async function getOrdersByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(orders)
+    .where(eq(orders.userId, userId))
+    .orderBy(desc(orders.createdAt));
+}
+
+export async function getOrderById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
+  return result[0];
+}
+
+export async function getOrderItems(orderId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+}
+
+export async function updateOrderStatus(
+  id: number,
+  status: "placed" | "preparing" | "on_the_way" | "delivered" | "cancelled"
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.update(orders).set({ status }).where(eq(orders.id, id));
+}
+
+export async function getAllOrders(limit = 50, offset = 0) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({
+      order: orders,
+      userName: users.name,
+      restaurantName: restaurants.name,
+    })
+    .from(orders)
+    .leftJoin(users, eq(orders.userId, users.id))
+    .leftJoin(restaurants, eq(orders.restaurantId, restaurants.id))
+    .orderBy(desc(orders.createdAt))
+    .limit(limit)
+    .offset(offset);
+}
+
+export async function getOrderWithRestaurant(orderId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select({
+      order: orders,
+      restaurant: restaurants,
+    })
+    .from(orders)
+    .leftJoin(restaurants, eq(orders.restaurantId, restaurants.id))
+    .where(eq(orders.id, orderId))
+    .limit(1);
+  return result[0];
+}
