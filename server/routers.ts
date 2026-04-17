@@ -33,6 +33,8 @@ import {
   getUserNotificationPreferences,
   createOrUpdateNotificationPreferences,
 } from "./db";
+import { smsLogs } from "../drizzle/schema";
+import { desc } from "drizzle-orm";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
 
@@ -412,6 +414,21 @@ export const appRouter = router({
         await createOrUpdateNotificationPreferences(ctx.user.id, input);
         return { success: true };
       }),
+    listLogs: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      try {
+        const logs = await db
+          .select()
+          .from(smsLogs)
+          .orderBy(desc(smsLogs.createdAt))
+          .limit(100);
+        return logs;
+      } catch (error) {
+        console.error('[Database] Failed to fetch SMS logs:', error);
+        return [];
+      }
+    }),
   }),
 });
 

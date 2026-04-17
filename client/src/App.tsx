@@ -15,6 +15,7 @@ import Checkout from "./pages/Checkout";
 import OrderHistory from "./pages/OrderHistory";
 import OrderTracking from "./pages/OrderTracking";
 import Admin from "./pages/Admin";
+import Settings from "./pages/Settings";
 
 function Router() {
   return (
@@ -27,6 +28,7 @@ function Router() {
       <Route path="/orders" component={OrderHistory} />
       <Route path="/orders/:id" component={OrderTracking} />
       <Route path="/admin" component={Admin} />
+      <Route path="/settings" component={Settings} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

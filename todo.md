@@ -78,6 +78,9 @@
 
 
 ## SMS Preferences UI & Testing
-- [ ] Add profile/settings page to manage SMS notification preferences
+- [x] Add profile/settings page to manage SMS notification preferences
 - [x] Add Vitest test for SMS gating by user preference (5 tests, all passing)
-- [ ] Add SMS logs view in admin panel
+- [x] Add SMS logs view in admin panel with real SMS logs table
+- [x] Fix Settings page loading logic for users without saved preferences
+- [x] Add SMS logs listing procedure to notifications router
+- [x] Add Settings link to Navbar dropdown menu

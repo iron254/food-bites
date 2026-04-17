@@ -92,6 +92,9 @@ export default function Navbar() {
                   <DropdownMenuItem asChild>
                     <Link href="/orders" className="cursor-pointer">My Orders</Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings" className="cursor-pointer">Settings</Link>
+                  </DropdownMenuItem>
                   {user?.role === "admin" && (
                     <DropdownMenuItem asChild>
                       <Link href="/admin" className="cursor-pointer">Admin Panel</Link>
