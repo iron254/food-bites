@@ -2,7 +2,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { formatKES } from "@shared/currency";
-import { CheckCircle2, ChevronRight, MapPin, Phone, User, FileText, ArrowLeft } from "lucide-react";
+import { CheckCircle2, ChevronRight, MapPin, Phone, User, FileText, ArrowLeft, CreditCard } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import PaymentModal from "@/components/PaymentModal";
 
 export default function Checkout() {
   const { items, subtotal, restaurantId, restaurantName, clearCart } = useCart();
   const { user } = useAuth();
   const [, navigate] = useLocation();
   const [orderId, setOrderId] = useState<number | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
 
   const [form, setForm] = useState({
     deliveryName: user?.name ?? "",
@@ -31,7 +34,7 @@ export default function Checkout() {
   const createOrder = trpc.orders.create.useMutation({
     onSuccess: (data) => {
       setOrderId(data.orderId);
-      clearCart();
+      setShowPaymentModal(true);
     },
     onError: (err) => {
       toast.error("Failed to place order", { description: err.message });
@@ -63,8 +66,13 @@ export default function Checkout() {
     });
   };
 
+  const handlePaymentSuccess = () => {
+    setPaymentCompleted(true);
+    clearCart();
+  };
+
   // ── Order Confirmation Screen ──────────────────────────────────────────────
-  if (orderId) {
+  if (orderId && paymentCompleted) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center">
@@ -75,23 +83,23 @@ export default function Checkout() {
             className="text-3xl font-bold text-foreground mb-3"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            Order Placed!
+            Order Confirmed!
           </h1>
           <p className="text-muted-foreground mb-2">
             Your order from <span className="font-semibold text-foreground">{restaurantName}</span>{" "}
-            has been confirmed.
+            has been confirmed and payment received.
           </p>
           <p className="text-sm text-muted-foreground mb-8">
             Order #{orderId} · Estimated delivery: 30–45 minutes
           </p>
 
-            <div className="bg-white rounded-2xl border border-border p-5 mb-8 text-left">
-              <div className="flex items-center gap-2 mb-3">
-                <MapPin className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium">Delivering to</span>
-              </div>
-              <p className="text-sm text-muted-foreground">{form.deliveryAddress}</p>
+          <div className="bg-white rounded-2xl border border-border p-5 mb-8 text-left">
+            <div className="flex items-center gap-2 mb-3">
+              <MapPin className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium">Delivering to</span>
             </div>
+            <p className="text-sm text-muted-foreground">{form.deliveryAddress}</p>
+          </div>
 
           <div className="flex flex-col gap-3">
             <Button
@@ -180,7 +188,7 @@ export default function Checkout() {
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         id="phone"
-                        placeholder="+1 (555) 000-0000"
+                        placeholder="+254712345678"
                         value={form.deliveryPhone}
                         onChange={(e) => setForm({ ...form, deliveryPhone: e.target.value })}
                         className="pl-10"
@@ -237,14 +245,14 @@ export default function Checkout() {
 
                 <div className="space-y-2 mb-4">
                   {items.map((item) => (
-                  <div key={item.menuItemId} className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      {item.name} × {item.quantity}
-                    </span>
-                    <span className="font-medium">
-                      {formatKES(item.price * item.quantity)}
-                    </span>
-                  </div>
+                    <div key={item.menuItemId} className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        {item.name} × {item.quantity}
+                      </span>
+                      <span className="font-medium">
+                        {formatKES(item.price * item.quantity)}
+                      </span>
+                    </div>
                   ))}
                 </div>
 
@@ -268,12 +276,20 @@ export default function Checkout() {
                   <span className="text-primary text-lg">{formatKES(total)}</span>
                 </div>
 
+                {/* Payment Method Info */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex items-start gap-2">
+                  <CreditCard className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-blue-800">
+                    Pay securely with M-Pesa. You'll receive a prompt on your phone.
+                  </p>
+                </div>
+
                 <Button
                   type="submit"
                   className="w-full bg-primary hover:bg-primary/90 text-white h-12 text-base"
                   disabled={createOrder.isPending}
                 >
-                  {createOrder.isPending ? "Placing Order..." : `Place Order · ${formatKES(total)}`}
+                  {createOrder.isPending ? "Placing Order..." : `Proceed to Payment · ${formatKES(total)}`}
                 </Button>
 
                 <p className="text-xs text-muted-foreground text-center mt-3">
@@ -284,6 +300,17 @@ export default function Checkout() {
           </div>
         </form>
       </div>
+
+      {/* Payment Modal */}
+      {orderId && (
+        <PaymentModal
+          orderId={orderId}
+          amount={total}
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
+      )}
     </div>
   );
 }

@@ -41,3 +41,17 @@
 - [x] Change all currency displays from USD ($) to KES (Ksh)
 - [x] Update seed data prices to Kenyan shillings
 - [x] Update frontend components to show KES format
+
+## Images & Realistic Pricing
+- [x] Generate real food images for all menu items
+- [x] Generate restaurant storefront images
+- [x] Update seed data with realistic Kenyan market prices
+- [x] Upload images to storage and link in database
+
+## M-Pesa Payment Integration
+- [x] Add payment status field to orders table
+- [x] Create M-Pesa payment router with STK push and callback handling
+- [x] Update Checkout page to include M-Pesa payment flow
+- [x] Add payment confirmation modal
+- [x] Add payment status tracking to Order Tracking page
+- [x] Write tests for M-Pesa payment procedures

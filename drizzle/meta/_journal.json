@@ -15,6 +15,13 @@
       "when": 1776439423136,
       "tag": "0001_polite_galactus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1776456147172,
+      "tag": "0002_friendly_tomorrow_man",
+      "breakpoints": true
     }
   ]
 }

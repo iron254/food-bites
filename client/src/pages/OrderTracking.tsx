@@ -8,6 +8,8 @@ import {
   MapPin,
   Package,
   Truck,
+  CreditCard,
+  AlertCircle,
 } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -217,6 +219,52 @@ export default function OrderTracking() {
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Payment Status */}
+            <div className="bg-white rounded-2xl border border-border p-6">
+              <h2 className="font-bold text-foreground mb-4 flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-primary" />
+                Payment Status
+              </h2>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Payment Method</span>
+                  <span className="text-sm font-medium text-foreground">M-Pesa</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Status</span>
+                  <div className="flex items-center gap-2">
+                    {order.paymentStatus === "completed" ? (
+                      <>
+                        <span className="w-2 h-2 rounded-full bg-green-500" />
+                        <span className="text-sm font-medium text-green-600">Paid</span>
+                      </>
+                    ) : order.paymentStatus === "processing" ? (
+                      <>
+                        <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                        <span className="text-sm font-medium text-blue-600">Processing</span>
+                      </>
+                    ) : order.paymentStatus === "failed" ? (
+                      <>
+                        <AlertCircle className="w-4 h-4 text-red-600" />
+                        <span className="text-sm font-medium text-red-600">Failed</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="w-2 h-2 rounded-full bg-yellow-500" />
+                        <span className="text-sm font-medium text-yellow-600">Pending</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                {order.mpesaTransactionId && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Transaction ID</span>
+                    <span className="text-sm font-mono text-foreground">{order.mpesaTransactionId}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Delivery Info */}

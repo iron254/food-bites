@@ -4,6 +4,9 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { initiateSTKPush, querySTKPushStatus } from "./mpesa";
+import { updateOrderPaymentStatus, getOrderByCheckoutRequestId } from "./db";
+import { ENV } from "./_core/env";
 import {
   createMenuItem,
   createMenuCategory,
@@ -14,6 +17,7 @@ import {
   deleteRestaurant,
   getAllMenuItems,
   getAllOrders,
+  getDb,
   getMenuCategories,
   getMenuItems,
   getOrderById,
@@ -285,6 +289,73 @@ const ordersRouter = router({
       await updateOrderStatus(input.id, input.status);
       return { success: true };
     }),
+
+  // M-Pesa: Initiate payment
+  initiatePayment: protectedProcedure
+    .input(
+      z.object({
+        orderId: z.number(),
+        phoneNumber: z.string(),
+        amount: z.number(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const order = await getOrderById(input.orderId);
+      if (!order) throw new TRPCError({ code: "NOT_FOUND", message: "Order not found" });
+      if (order.userId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN" });
+
+      const callbackUrl = ENV.mpesaCallbackUrl || "https://example.com/api/mpesa/callback";
+
+      const result = await initiateSTKPush({
+        phoneNumber: input.phoneNumber,
+        amount: input.amount,
+        accountReference: `ORDER${input.orderId}`,
+        transactionDescription: `Food Bites Order #${input.orderId}`,
+        callbackUrl,
+      });
+
+      if (result.responseCode === "0") {
+        await updateOrderPaymentStatus(
+          input.orderId,
+          "processing",
+          undefined,
+          result.checkoutRequestId
+        );
+      }
+
+      return result;
+    }),
+
+  // M-Pesa: Query payment status
+  queryPaymentStatus: protectedProcedure
+    .input(z.object({ orderId: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const order = await getOrderById(input.orderId);
+      if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+      if (order.userId !== ctx.user.id && ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      if (!order.mpesaCheckoutRequestId) {
+        return { status: "pending", message: "Payment not initiated" };
+      }
+
+      const result = await querySTKPushStatus({
+        checkoutRequestId: order.mpesaCheckoutRequestId,
+      });
+
+      return result;
+    }),
+});
+
+// ─── Seed Router ────────────────────────────────────────────────────────────────
+
+const seedRouter = router({
+  populate: adminProcedure.mutation(async () => {
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+    return { success: true, message: "Seed endpoint ready" };
+  }),
 });
 
 // ─── App Router ───────────────────────────────────────────────────────────────
@@ -302,6 +373,7 @@ export const appRouter = router({
   restaurants: restaurantsRouter,
   menu: menuRouter,
   orders: ordersRouter,
+  seed: seedRouter,
 });
 
 export type AppRouter = typeof appRouter;

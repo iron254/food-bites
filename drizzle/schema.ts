@@ -79,6 +79,12 @@ export const orders = mysqlTable("orders", {
   status: mysqlEnum("status", ["placed", "preparing", "on_the_way", "delivered", "cancelled"])
     .default("placed")
     .notNull(),
+  paymentStatus: mysqlEnum("paymentStatus", ["pending", "processing", "completed", "failed"])
+    .default("pending")
+    .notNull(),
+  paymentMethod: varchar("paymentMethod", { length: 50 }).default("mpesa"),
+  mpesaTransactionId: varchar("mpesaTransactionId", { length: 100 }),
+  mpesaCheckoutRequestId: varchar("mpesaCheckoutRequestId", { length: 100 }),
   totalAmount: decimal("totalAmount", { precision: 10, scale: 2 }).notNull(),
   deliveryFee: decimal("deliveryFee", { precision: 6, scale: 2 }).default("2.99"),
   deliveryAddress: text("deliveryAddress").notNull(),

@@ -294,3 +294,32 @@ export async function getOrderWithRestaurant(orderId: number) {
     .limit(1);
   return result[0];
 }
+
+// ─── Payment Management ────────────────────────────────────────────────────────
+
+export async function updateOrderPaymentStatus(
+  id: number,
+  paymentStatus: "pending" | "processing" | "completed" | "failed",
+  mpesaTransactionId?: string,
+  mpesaCheckoutRequestId?: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  
+  const updateData: any = { paymentStatus };
+  if (mpesaTransactionId) updateData.mpesaTransactionId = mpesaTransactionId;
+  if (mpesaCheckoutRequestId) updateData.mpesaCheckoutRequestId = mpesaCheckoutRequestId;
+  
+  await db.update(orders).set(updateData).where(eq(orders.id, id));
+}
+
+export async function getOrderByCheckoutRequestId(checkoutRequestId: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.mpesaCheckoutRequestId, checkoutRequestId))
+    .limit(1);
+  return result[0];
+}
