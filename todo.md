@@ -89,3 +89,19 @@
 ## Footer & Contact Display
 - [x] Add contact details (phone, email) to Footer component
 - [x] Display contact info prominently at bottom of every page
+
+
+## M-Pesa Callback Implementation
+- [x] Wire callback to look up order by CheckoutRequestID
+- [x] Update order payment status in callback handler for success/failure
+- [x] Persist callback metadata (receipt number, result codes)
+- [x] Add Vitest tests for callback endpoint (success/failure/invalid payloads)
+- [x] Add app-facing handling for failed payment state (via PaymentModal)
+
+## Bookmarking System
+- [x] Add bookmark database schema and migration
+- [x] Create bookmark tRPC procedures (add, remove, list)
+- [x] Add heart icon UI to restaurant cards
+- [ ] Add heart icon UI to menu item cards
+- [ ] Create Favorites page to view bookmarked restaurants
+- [ ] Add Vitest tests for bookmark procedures

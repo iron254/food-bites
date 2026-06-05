@@ -136,3 +136,13 @@ export const smsLogs = mysqlTable("sms_logs", {
 
 export type SmsLog = typeof smsLogs.$inferSelect;
 export type InsertSmsLog = typeof smsLogs.$inferInsert;
+
+export const bookmarks = mysqlTable("bookmarks", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  restaurantId: int("restaurantId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Bookmark = typeof bookmarks.$inferSelect;
+export type InsertBookmark = typeof bookmarks.$inferInsert;

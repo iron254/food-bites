@@ -1,7 +1,10 @@
-import { Clock, Star, Truck, UtensilsCrossed } from "lucide-react";
+import { Clock, Star, Truck, UtensilsCrossed, Heart } from "lucide-react";
 import { Link } from "wouter";
 import { Badge } from "./ui/badge";
 import { formatKES } from "@shared/currency";
+import { trpc } from "@/lib/trpc";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 interface Restaurant {
   id: number;
@@ -70,6 +73,49 @@ export default function RestaurantCard({ restaurant }: { restaurant: Restaurant 
   const gradient = getCuisineGradient(restaurant.cuisine);
   const emoji = getCuisineEmoji(restaurant.cuisine);
   const rating = parseFloat(restaurant.rating ?? "0");
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
+
+  // Only query bookmark status if user is authenticated
+  const { data: bookmarkStatus } = trpc.bookmarks.isBookmarked.useQuery(
+    { restaurantId: restaurant.id },
+    { enabled: !!restaurant.id && !!user }
+  );
+
+  const addBookmarkMutation = trpc.bookmarks.add.useMutation();
+  const removeBookmarkMutation = trpc.bookmarks.remove.useMutation();
+
+  useEffect(() => {
+    if (bookmarkStatus !== undefined) {
+      setIsBookmarked(bookmarkStatus);
+    }
+  }, [bookmarkStatus]);
+
+  const handleBookmarkClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Don't allow bookmarking if not authenticated
+    if (!user) {
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      if (isBookmarked) {
+        await removeBookmarkMutation.mutateAsync({ restaurantId: restaurant.id });
+        setIsBookmarked(false);
+      } else {
+        await addBookmarkMutation.mutateAsync({ restaurantId: restaurant.id });
+        setIsBookmarked(true);
+      }
+    } catch (error) {
+      console.error("Failed to toggle bookmark:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Link href={`/restaurants/${restaurant.id}`}>
@@ -89,6 +135,25 @@ export default function RestaurantCard({ restaurant }: { restaurant: Restaurant 
               <span className="text-6xl">{emoji}</span>
             </div>
           )}
+          
+          {/* Bookmark button (only show if authenticated) */}
+          {user && (
+            <button
+              onClick={handleBookmarkClick}
+              disabled={isLoading}
+              className="absolute top-3 right-3 z-10 bg-white/95 backdrop-blur-sm rounded-lg p-2 hover:bg-white transition-colors disabled:opacity-50"
+              aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
+            >
+              <Heart
+                className={`w-5 h-5 transition-colors ${
+                  isBookmarked
+                    ? "fill-red-500 text-red-500"
+                    : "text-muted-foreground hover:text-red-500"
+                }`}
+              />
+            </button>
+          )}
+
           {/* Badges */}
           <div className="absolute top-3 left-3 flex gap-2">
             {restaurant.featured && (
@@ -102,8 +167,9 @@ export default function RestaurantCard({ restaurant }: { restaurant: Restaurant 
               </Badge>
             )}
           </div>
+          
           {/* Rating badge */}
-          <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1 shadow-md">
+          <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1 shadow-md">
             <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
             <span className="text-xs font-bold text-foreground">{rating.toFixed(1)}</span>
             {restaurant.reviewCount ? (

@@ -32,6 +32,10 @@ import {
   updateRestaurant,
   getUserNotificationPreferences,
   createOrUpdateNotificationPreferences,
+  addBookmark,
+  removeBookmark,
+  isRestaurantBookmarked,
+  getBookmarkedRestaurants,
 } from "./db";
 import { smsLogs } from "../drizzle/schema";
 import { desc } from "drizzle-orm";
@@ -428,6 +432,28 @@ export const appRouter = router({
         console.error('[Database] Failed to fetch SMS logs:', error);
         return [];
       }
+    }),
+  }),
+  bookmarks: router({
+    add: protectedProcedure
+      .input(z.object({ restaurantId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        await addBookmark(ctx.user.id, input.restaurantId);
+        return { success: true };
+      }),
+    remove: protectedProcedure
+      .input(z.object({ restaurantId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        await removeBookmark(ctx.user.id, input.restaurantId);
+        return { success: true };
+      }),
+    isBookmarked: protectedProcedure
+      .input(z.object({ restaurantId: z.number() }))
+      .query(async ({ input, ctx }) => {
+        return isRestaurantBookmarked(ctx.user.id, input.restaurantId);
+      }),
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getBookmarkedRestaurants(ctx.user.id);
     }),
   }),
 });

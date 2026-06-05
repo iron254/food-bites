@@ -11,8 +11,9 @@ import {
   Truck,
   UtensilsCrossed,
   Flame,
+  Heart,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -131,6 +132,39 @@ export default function RestaurantDetail() {
   const restaurantId = parseInt(id ?? "0");
   const [, navigate] = useLocation();
   const { totalItems, subtotal, restaurantId: cartRestaurantId } = useCart();
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
+
+  const { data: bookmarkStatus } = trpc.bookmarks.isBookmarked.useQuery(
+    { restaurantId },
+    { enabled: !!restaurantId }
+  );
+
+  const addBookmarkMutation = trpc.bookmarks.add.useMutation();
+  const removeBookmarkMutation = trpc.bookmarks.remove.useMutation();
+
+  useEffect(() => {
+    if (bookmarkStatus !== undefined) {
+      setIsBookmarked(bookmarkStatus);
+    }
+  }, [bookmarkStatus]);
+
+  const handleBookmarkClick = async () => {
+    setIsBookmarkLoading(true);
+    try {
+      if (isBookmarked) {
+        await removeBookmarkMutation.mutateAsync({ restaurantId });
+        setIsBookmarked(false);
+      } else {
+        await addBookmarkMutation.mutateAsync({ restaurantId });
+        setIsBookmarked(true);
+      }
+    } catch (error) {
+      console.error("Failed to toggle bookmark:", error);
+    } finally {
+      setIsBookmarkLoading(false);
+    }
+  };
 
   const { data: restaurant, isLoading: loadingRestaurant } = trpc.restaurants.getById.useQuery(
     { id: restaurantId },
@@ -215,8 +249,22 @@ export default function RestaurantDetail() {
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
 
-        {/* Status badge */}
-        <div className="absolute top-4 right-4">
+        {/* Status badge and bookmark */}
+        <div className="absolute top-4 right-4 flex items-center gap-3">
+          <button
+            onClick={handleBookmarkClick}
+            disabled={isBookmarkLoading}
+            className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-md disabled:opacity-50"
+            aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
+          >
+            <Heart
+              className={`w-5 h-5 transition-colors ${
+                isBookmarked
+                  ? "fill-red-500 text-red-500"
+                  : "text-muted-foreground hover:text-red-500"
+              }`}
+            />
+          </button>
           <Badge
             className={
               restaurant.isOpen

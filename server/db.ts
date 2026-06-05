@@ -10,6 +10,7 @@ import {
   users,
   userNotificationPreferences,
   smsLogs,
+  bookmarks,
   type InsertMenuItem,
   type InsertOrder,
   type InsertOrderItem,
@@ -381,4 +382,54 @@ export async function createOrUpdateNotificationPreferences(
   } catch (error) {
     console.error("[Database] Failed to update notification preferences:", error);
   }
+}
+
+// ─── Bookmarks ────────────────────────────────────────────────────────────────
+
+export async function addBookmark(userId: number, restaurantId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  
+  // Check if bookmark already exists
+  const existing = await db
+    .select()
+    .from(bookmarks)
+    .where(and(eq(bookmarks.userId, userId), eq(bookmarks.restaurantId, restaurantId)))
+    .limit(1);
+  
+  if (existing.length > 0) {
+    return; // Already bookmarked
+  }
+  
+  await db.insert(bookmarks).values({ userId, restaurantId });
+}
+
+export async function removeBookmark(userId: number, restaurantId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db
+    .delete(bookmarks)
+    .where(and(eq(bookmarks.userId, userId), eq(bookmarks.restaurantId, restaurantId)));
+}
+
+export async function isRestaurantBookmarked(userId: number, restaurantId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db
+    .select()
+    .from(bookmarks)
+    .where(and(eq(bookmarks.userId, userId), eq(bookmarks.restaurantId, restaurantId)))
+    .limit(1);
+  return result.length > 0;
+}
+
+export async function getBookmarkedRestaurants(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({ restaurant: restaurants })
+    .from(bookmarks)
+    .leftJoin(restaurants, eq(bookmarks.restaurantId, restaurants.id))
+    .where(eq(bookmarks.userId, userId))
+    .orderBy(desc(bookmarks.createdAt));
 }
