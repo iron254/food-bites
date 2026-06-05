@@ -102,6 +102,7 @@
 - [x] Add bookmark database schema and migration
 - [x] Create bookmark tRPC procedures (add, remove, list)
 - [x] Add heart icon UI to restaurant cards
-- [ ] Add heart icon UI to menu item cards (out of scope - bookmarks are for restaurants, not individual items)
+- [x] Add heart icon UI to restaurant detail page
 - [x] Create Favorites page to view bookmarked restaurants
 - [x] Add Vitest tests for bookmark procedures
+- [x] Verify SMS notification gating works correctly
