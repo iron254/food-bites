@@ -28,6 +28,7 @@ export default function Navbar() {
   const navLinks = [
     { href: "/restaurants", label: "Restaurants" },
     { href: "/orders", label: "My Orders" },
+    { href: "/favorites", label: "Favorites" },
   ];
 
   return (
