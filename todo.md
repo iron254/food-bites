@@ -117,6 +117,6 @@
 ## Financial Reports Dashboard
 - [x] Create admin financial reports page with revenue analytics
 - [x] Add dashboard charts: daily revenue, total orders, average order value, orders by status
-- [ ] Add date range filter for financial reports (UI ready, backend supports it)
+- [x] Add date range filter for financial reports (UI with date inputs and clear button)
 - [ ] Add export financial data to CSV functionality (future enhancement)
 - [x] Add Vitest tests for financial report procedures (13 tests passing)

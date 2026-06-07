@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { ArrowLeft, TrendingUp, Package, DollarSign, BarChart3 } from "lucide-react";
+import { ArrowLeft, TrendingUp, Package, DollarSign, BarChart3, X } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -60,6 +60,52 @@ export default function FinancialReports() {
               <h1 className="text-2xl font-bold text-foreground">Financial Reports</h1>
               <p className="text-sm text-muted-foreground">Revenue and order analytics</p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Date Range Filter */}
+      <div className="bg-white border-b border-border">
+        <div className="container py-4">
+          <div className="flex items-end gap-4 flex-wrap">
+            <div>
+              <label className="text-sm font-medium text-muted-foreground block mb-2">
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={dateRange.start ? dateRange.start.toISOString().split("T")[0] : ""}
+                onChange={(e) =>
+                  setDateRange((prev) => ({
+                    ...prev,
+                    start: e.target.value ? new Date(e.target.value) : undefined,
+                  }))
+                }
+                className="px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-muted-foreground block mb-2">
+                End Date
+              </label>
+              <input
+                type="date"
+                value={dateRange.end ? dateRange.end.toISOString().split("T")[0] : ""}
+                onChange={(e) =>
+                  setDateRange((prev) => ({
+                    ...prev,
+                    end: e.target.value ? new Date(e.target.value) : undefined,
+                  }))
+                }
+                className="px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            {(dateRange.start || dateRange.end) && (
+              <Button variant="outline" size="sm" onClick={() => setDateRange({})}>
+                <X className="w-4 h-4 mr-1" />
+                Clear Filters
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -172,9 +218,7 @@ export default function FinancialReports() {
                     </thead>
                     <tbody>
                       {dailyRevenue.map((day, idx) => {
-                        const maxRevenue = Math.max(
-                          ...dailyRevenue.map((d) => d.revenue)
-                        );
+                        const maxRevenue = Math.max(...dailyRevenue.map((d) => d.revenue));
                         const percentage = (day.revenue / maxRevenue) * 100;
 
                         return (
