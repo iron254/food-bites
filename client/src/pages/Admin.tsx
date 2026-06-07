@@ -10,6 +10,7 @@ import {
   X,
   Check,
   AlertTriangle,
+  BarChart3,
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
@@ -714,20 +715,27 @@ export default function Admin() {
 
       <div className="container py-8">
         <Tabs defaultValue="restaurants">
-          <TabsList className="mb-6 bg-white border border-border">
-            <TabsTrigger value="restaurants" className="gap-2">
-              <Store className="w-4 h-4" /> Restaurants
-            </TabsTrigger>
-            <TabsTrigger value="menu" className="gap-2">
-              <UtensilsCrossed className="w-4 h-4" /> Menu Items
-            </TabsTrigger>
-            <TabsTrigger value="orders" className="gap-2">
-              <Package className="w-4 h-4" /> Orders
-            </TabsTrigger>
-            <TabsTrigger value="sms-logs" className="gap-2">
-              <AlertTriangle className="w-4 h-4" /> SMS Logs
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex items-center justify-between mb-6">
+            <TabsList className="bg-white border border-border">
+              <TabsTrigger value="restaurants" className="gap-2">
+                <Store className="w-4 h-4" /> Restaurants
+              </TabsTrigger>
+              <TabsTrigger value="menu" className="gap-2">
+                <UtensilsCrossed className="w-4 h-4" /> Menu Items
+              </TabsTrigger>
+              <TabsTrigger value="orders" className="gap-2">
+                <Package className="w-4 h-4" /> Orders
+              </TabsTrigger>
+              <TabsTrigger value="sms-logs" className="gap-2">
+                <AlertTriangle className="w-4 h-4" /> SMS Logs
+              </TabsTrigger>
+            </TabsList>
+            <Link href="/admin/reports">
+              <Button variant="outline" className="gap-2">
+                <BarChart3 className="w-4 h-4" /> Financial Reports
+              </Button>
+            </Link>
+          </div>
 
           <TabsContent value="restaurants">
             <RestaurantsTab />

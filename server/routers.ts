@@ -6,6 +6,9 @@ import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { initiateSTKPush, querySTKPushStatus } from "./mpesa";
 import { sendOrderStatusNotification } from "./sms";
+import { getReceiptData, generateReceiptHTML } from "./receipt";
+import { receiptsRouter } from "./receipts-router";
+import { reportsRouter } from "./reports-router";
 import { updateOrderPaymentStatus, getOrderByCheckoutRequestId } from "./db";
 import { ENV } from "./_core/env";
 import {
@@ -456,6 +459,8 @@ export const appRouter = router({
       return getBookmarkedRestaurants(ctx.user.id);
     }),
   }),
+  receipts: receiptsRouter,
+  reports: reportsRouter,
 });
 
 export type AppRouter = typeof appRouter;

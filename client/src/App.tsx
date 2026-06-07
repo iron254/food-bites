@@ -17,6 +17,7 @@ import OrderTracking from "./pages/OrderTracking";
 import Admin from "./pages/Admin";
 import Settings from "./pages/Settings";
 import Favorites from "./pages/Favorites";
+import FinancialReports from "./pages/FinancialReports";
 
 function Router() {
   return (
@@ -29,6 +30,7 @@ function Router() {
       <Route path="/orders" component={OrderHistory} />
       <Route path="/orders/:id" component={OrderTracking} />
       <Route path="/admin" component={Admin} />
+      <Route path="/admin/reports" component={FinancialReports} />
       <Route path="/settings" component={Settings} />
       <Route path="/favorites" component={Favorites} />
       <Route path="/404" component={NotFound} />

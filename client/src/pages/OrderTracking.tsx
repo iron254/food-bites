@@ -10,11 +10,13 @@ import {
   Truck,
   CreditCard,
   AlertCircle,
+  Download,
 } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { formatKES } from "@shared/currency";
+import { ReceiptDownloadButton } from "@/components/ReceiptDownloadButton";
 
 const STEPS = [
   {
@@ -351,7 +353,8 @@ export default function OrderTracking() {
                 <span className="text-primary">{formatKES(parseFloat(order.totalAmount))}</span>
               </div>
 
-              <div className="mt-5 pt-4 border-t border-border">
+              <div className="mt-5 pt-4 border-t border-border space-y-2">
+                <ReceiptDownloadButton orderId={orderId} />
                 <Link href="/restaurants">
                   <Button variant="outline" className="w-full text-sm">
                     Order Again

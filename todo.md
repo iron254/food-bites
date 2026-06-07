@@ -106,3 +106,17 @@
 - [x] Create Favorites page to view bookmarked restaurants
 - [x] Add Vitest tests for bookmark procedures
 - [x] Verify SMS notification gating works correctly
+
+## Receipt Generation
+- [x] Add receipt generation backend (HTML generation with formatKES)
+- [x] Create tRPC procedure to generate and return receipt HTML
+- [x] Add receipt download button to Order Tracking page
+- [ ] Add receipt email delivery option (future enhancement)
+- [x] Add Vitest tests for receipt generation (13 tests passing)
+
+## Financial Reports Dashboard
+- [x] Create admin financial reports page with revenue analytics
+- [x] Add dashboard charts: daily revenue, total orders, average order value, orders by status
+- [ ] Add date range filter for financial reports (UI ready, backend supports it)
+- [ ] Add export financial data to CSV functionality (future enhancement)
+- [x] Add Vitest tests for financial report procedures (13 tests passing)
