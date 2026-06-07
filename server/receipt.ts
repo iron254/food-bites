@@ -355,3 +355,145 @@ export function generateReceiptHTML(receipt: ReceiptData): string {
     </html>
   `;
 }
+
+
+/**
+ * Generate PDF receipt from receipt data
+ */
+export async function generateReceiptPDF(receipt: ReceiptData): Promise<Buffer> {
+  const PDFDocument = require("pdfkit");
+
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({
+      size: "A4",
+      margin: 40,
+    });
+
+    const chunks: Buffer[] = [];
+
+    doc.on("data", (chunk: Buffer) => {
+      chunks.push(chunk);
+    });
+
+    doc.on("end", () => {
+      resolve(Buffer.concat(chunks));
+    });
+
+    doc.on("error", reject);
+
+    // Header
+    doc.fontSize(24).font("Helvetica-Bold").text("FoodBites", { align: "center" });
+    doc.fontSize(10).font("Helvetica").text("Receipt", { align: "center" });
+    doc.moveDown(0.5);
+
+    // Order details
+    doc.fontSize(10).font("Helvetica-Bold").text("Order Details", { underline: true });
+    doc.fontSize(9).font("Helvetica");
+    doc.text(`Order #: ${receipt.orderNumber}`);
+    doc.text(`Date: ${new Date(receipt.createdAt).toLocaleString("en-KE")}`);
+    doc.text(`Status: ${receipt.orderStatus.replace(/_/g, " ").toUpperCase()}`);
+    doc.moveDown(0.3);
+
+    // Customer info
+    doc.fontSize(10).font("Helvetica-Bold").text("Customer Information", { underline: true });
+    doc.fontSize(9).font("Helvetica");
+    doc.text(`Name: ${receipt.customerName}`);
+    if (receipt.customerPhone) {
+      doc.text(`Phone: ${receipt.customerPhone}`);
+    }
+    if (receipt.customerEmail) {
+      doc.text(`Email: ${receipt.customerEmail}`);
+    }
+    if (receipt.deliveryAddress) {
+      doc.text(`Delivery Address: ${receipt.deliveryAddress}`);
+    }
+    doc.moveDown(0.3);
+
+    // Restaurant info
+    doc.fontSize(10).font("Helvetica-Bold").text("Restaurant", { underline: true });
+    doc.fontSize(9).font("Helvetica");
+    doc.text(receipt.restaurantName);
+    doc.moveDown(0.5);
+
+    // Items table
+    doc.fontSize(10).font("Helvetica-Bold").text("Order Items", { underline: true });
+    doc.moveDown(0.2);
+
+    // Table header
+    const tableTop = doc.y;
+    const col1 = 50;
+    const col2 = 300;
+    const col3 = 380;
+    const col4 = 480;
+
+    doc.fontSize(9).font("Helvetica-Bold");
+    doc.text("Item", col1, tableTop);
+    doc.text("Qty", col2, tableTop);
+    doc.text("Price", col3, tableTop);
+    doc.text("Subtotal", col4, tableTop);
+
+    // Draw line
+    doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).stroke();
+
+    // Table rows
+    let yPosition = tableTop + 20;
+    doc.fontSize(9).font("Helvetica");
+
+    receipt.items.forEach((item) => {
+      if (yPosition > 700) {
+        doc.addPage();
+        yPosition = 40;
+      }
+
+      doc.text(item.name, col1, yPosition);
+      doc.text(item.quantity.toString(), col2, yPosition);
+      doc.text(formatKES(item.price), col3, yPosition);
+      doc.text(formatKES(item.subtotal), col4, yPosition);
+
+      yPosition += 20;
+    });
+
+    // Draw line before totals
+    doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke();
+    yPosition += 10;
+
+    // Totals
+    doc.fontSize(9).font("Helvetica");
+    doc.text("Subtotal:", col1, yPosition);
+    doc.text(formatKES(receipt.subtotal), col4, yPosition, { align: "right" });
+
+    yPosition += 20;
+    doc.text("Delivery Fee:", col1, yPosition);
+    doc.text(formatKES(receipt.deliveryFee), col4, yPosition, { align: "right" });
+
+    yPosition += 20;
+    doc.fontSize(11).font("Helvetica-Bold");
+    doc.text("Total:", col1, yPosition);
+    doc.text(formatKES(receipt.total), col4, yPosition, { align: "right" });
+
+    // Payment info
+    yPosition += 30;
+    doc.fontSize(9).font("Helvetica-Bold").text("Payment Information", { underline: true });
+    doc.fontSize(9).font("Helvetica");
+    doc.text(`Method: ${receipt.paymentMethod.toUpperCase()}`);
+    doc.text(`Status: ${receipt.paymentStatus.toUpperCase()}`);
+
+    // Special instructions
+    if (receipt.specialInstructions) {
+      yPosition = doc.y + 10;
+      doc.fontSize(9).font("Helvetica-Bold").text("Special Instructions", { underline: true });
+      doc.fontSize(9).font("Helvetica");
+      doc.text(receipt.specialInstructions, { width: 500 });
+    }
+
+    // Footer
+    doc.moveDown(1);
+    doc.fontSize(8).font("Helvetica").text("Thank you for your order! 🙏", { align: "center" });
+    doc.text("For support, contact us at oluochraymond6@gmail.com or +254769535484", {
+      align: "center",
+    });
+    doc.text(`Receipt generated on ${new Date().toLocaleString("en-KE")}`, { align: "center" });
+
+    doc.end();
+  });
+}

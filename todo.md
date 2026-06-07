@@ -120,3 +120,10 @@
 - [x] Add date range filter for financial reports (UI with date inputs and clear button)
 - [ ] Add export financial data to CSV functionality (future enhancement)
 - [x] Add Vitest tests for financial report procedures (13 tests passing)
+
+## PDF Receipt Generation Enhancement
+- [x] Install PDF generation library (pdfkit)
+- [x] Create PDF generation backend function
+- [x] Add tRPC procedure for PDF receipt generation
+- [x] Update ReceiptDownloadButton to support PDF format selection
+- [x] Add Vitest tests for PDF receipt generation (18 tests passing)
